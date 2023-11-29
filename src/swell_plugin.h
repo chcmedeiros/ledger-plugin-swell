@@ -48,8 +48,7 @@ typedef enum {
     PUBKEY_OFFSET_2,
     N_PUBKEYS,
     TUPLE_OFFSET_1,
-    TUPLE_OFFSET_2,
-    SIGNATURE_LEN,
+    OFFSETS,
     NONE
 } parameter;
 
@@ -77,6 +76,8 @@ typedef struct {
             uint16_t pubkeys_len[4];
             bytes32_t pubkey[4];
             uint8_t id;
+            uint16_t tuple_offsets[4];
+            uint16_t tuple_offsets_start;
         } add_new_validator;
 
         struct {
@@ -84,12 +85,15 @@ typedef struct {
             uint16_t pubkeys_len[4];
             bytes32_t pubkey[4];
             uint8_t id;
+            uint16_t offsets[4];
+            uint16_t offsets_start;
         } pubkey_methods;
 
         struct {
             name_t name;
             address_t operator;
             address_t reward;
+            uint16_t name_offset;
         } add_operator;
 
         struct {
