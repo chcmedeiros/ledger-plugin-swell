@@ -55,7 +55,7 @@ For addNewValidatorDetails, deleteActiveValidators, deletePendingValidators, use
 
 To build the plugin, go to your folder with Ethereum app and plugin. Open a new terminal window and run:
 ```shell
-sudo docker run --rm -ti -v "$(realpath .):/app" --user $(id -u $USER):$(id -g $USER) ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest
+sudo docker run --rm -ti -v "$(realpath .):/app" -v "$(realpath app-ethereum):/plugin_dev/app-ethereum" --user $(id -u $USER):$(id -g $USER) ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest
 ```
 
 In the container, go to the plugin repository, then to the tests/ folder.

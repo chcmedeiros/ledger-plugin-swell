@@ -206,6 +206,12 @@ static void handle_add_operator(ethPluginProvideParameter_t *msg, context_t *con
 
     switch (context->next_param) {
         case NAME_OFFSET:
+            // save temporarily the offset to check on the name len parameter we are indeed in the
+            // right offset
+            if (!U2BE_from_parameter(msg->parameter, &context->tx.body.add_operator.name_offset)) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
             context->next_param = OPERATOR;
             break;
         case OPERATOR:
@@ -221,6 +227,11 @@ static void handle_add_operator(ethPluginProvideParameter_t *msg, context_t *con
             context->next_param = NAME_LEN;
             break;
         case NAME_LEN:
+            if (msg->parameterOffset != context->tx.body.add_operator.name_offset + SELECTOR_SIZE) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
+
             if (!U2BE_from_parameter(msg->parameter, &context->tx.body.add_operator.name.len)) {
                 msg->result = ETH_PLUGIN_RESULT_ERROR;
                 return;
@@ -307,6 +318,7 @@ static void handle_add_operator(ethPluginProvideParameter_t *msg, context_t *con
 
 static void handle_pubkeys(ethPluginProvideParameter_t *msg, context_t *context) {
     uint16_t containers = 0;  // group of 32 bytes needed to hold name
+    uint16_t tmp_offset = 0;
 
     if (context->go_to_offset) {
         if (msg->parameterOffset != context->offset) {
@@ -316,17 +328,51 @@ static void handle_pubkeys(ethPluginProvideParameter_t *msg, context_t *context)
     }
     switch (context->next_param) {
         case OFFSET:
+            // save temporarily the offset to check on the next parameter we are indeed in the right
+            // offset
+            if (!U2BE_from_parameter(msg->parameter,
+                                     &context->tx.body.pubkey_methods.offsets_start)) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
             context->next_param = N_PUBKEYS;
             break;
         case N_PUBKEYS:
+            if (msg->parameterOffset !=
+                context->tx.body.pubkey_methods.offsets_start + SELECTOR_SIZE) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
+
             if (!U2BE_from_parameter(msg->parameter, &context->tx.body.pubkey_methods.n_pubkeys) ||
-                context->tx.body.pubkey_methods.n_pubkeys > 4) {
+                context->tx.body.pubkey_methods.n_pubkeys > 4 ||
+                context->tx.body.pubkey_methods.n_pubkeys == 0) {
                 msg->result = ETH_PLUGIN_RESULT_ERROR;
             }
-            context->offset = msg->parameterOffset +
-                              ((1 + context->tx.body.pubkey_methods.n_pubkeys) * PARAMETER_LENGTH);
-            context->go_to_offset = true;
-            context->next_param = PUBKEY_LEN;
+            context->next_param = OFFSETS;
+            break;
+        case OFFSETS:
+            if (!U2BE_from_parameter(msg->parameter, &tmp_offset)) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
+
+            // save offsets start point
+            if (context->tx.body.pubkey_methods.id == 0) {
+                context->tx.body.pubkey_methods.offsets_start = msg->parameterOffset;
+            }
+            // save offset and if not last one save next
+            context->tx.body.pubkey_methods.offsets[context->tx.body.pubkey_methods.id] =
+                tmp_offset;
+            context->tx.body.pubkey_methods.id++;
+            context->next_param = OFFSETS;
+            if (context->tx.body.pubkey_methods.id == context->tx.body.pubkey_methods.n_pubkeys) {
+                context->tx.body.pubkey_methods.id = 0;
+                context->offset = context->tx.body.pubkey_methods.offsets_start +
+                                  context->tx.body.pubkey_methods.offsets[0];
+                context->go_to_offset = true;
+                context->next_param = PUBKEY_LEN;
+            }
             break;
         case PUBKEY_LEN:
             if (!U2BE_from_parameter(msg->parameter,
@@ -356,6 +402,10 @@ static void handle_pubkeys(ethPluginProvideParameter_t *msg, context_t *context)
                     context->next_param = NONE;
                 } else {
                     context->tx.body.pubkey_methods.id++;
+                    context->offset =
+                        context->tx.body.pubkey_methods.offsets_start +
+                        context->tx.body.pubkey_methods.offsets[context->tx.body.pubkey_methods.id];
+                    context->go_to_offset = true;
                     context->next_param = PUBKEY_LEN;
                 }
             } else {  // Name has more then 32 bytes
@@ -441,12 +491,18 @@ static void handle_pubkeys(ethPluginProvideParameter_t *msg, context_t *context)
                           HALF_PARAMETER_LENGTH,
                           msg->parameter + (bytes_missing - HALF_PARAMETER_LENGTH));
             }
+
             if (context->tx.body.pubkey_methods.id ==
                 context->tx.body.pubkey_methods.n_pubkeys - 1) {
                 context->tx.body.pubkey_methods.id = 0;
                 context->next_param = NONE;
             } else {
+                // we are not on the last offset, jump to next pubkey
                 context->tx.body.pubkey_methods.id++;
+                context->offset =
+                    context->tx.body.pubkey_methods.offsets_start +
+                    context->tx.body.pubkey_methods.offsets[context->tx.body.pubkey_methods.id];
+                context->go_to_offset = true;
                 context->next_param = PUBKEY_LEN;
             }
             break;
@@ -478,7 +534,7 @@ static void handle_withdraw(ethPluginProvideParameter_t *msg, context_t *context
 
 static void handle_add_new_validator(ethPluginProvideParameter_t *msg, context_t *context) {
     uint16_t containers = 0;  // group of 32 bytes needed to hold name
-    uint16_t sig_len = 0;     // signature len
+    uint16_t tmp_offset = 0;
 
     if (context->go_to_offset) {
         if (msg->parameterOffset != context->offset) {
@@ -488,24 +544,61 @@ static void handle_add_new_validator(ethPluginProvideParameter_t *msg, context_t
     }
     switch (context->next_param) {
         case OFFSET:
+            // save temporarily the offset to check on the next parameter we are indeed in the right
+            // offset
+            if (!U2BE_from_parameter(msg->parameter,
+                                     &context->tx.body.add_new_validator.tuple_offsets_start)) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
             context->next_param = N_PUBKEYS;
             break;
         case N_PUBKEYS:
+            if (msg->parameterOffset !=
+                context->tx.body.add_new_validator.tuple_offsets_start + SELECTOR_SIZE) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
+
             if (!U2BE_from_parameter(msg->parameter,
                                      &context->tx.body.add_new_validator.n_pubkeys) ||
-                context->tx.body.add_new_validator.n_pubkeys > 4) {
+                context->tx.body.add_new_validator.n_pubkeys > 4 ||
+                context->tx.body.add_new_validator.n_pubkeys == 0) {
                 msg->result = ETH_PLUGIN_RESULT_ERROR;
             }
-            context->offset =
-                msg->parameterOffset +
-                ((1 + context->tx.body.add_new_validator.n_pubkeys) * PARAMETER_LENGTH);
-            context->go_to_offset = true;
-            context->next_param = TUPLE_OFFSET_1;
+            context->next_param = OFFSETS;
+            break;
+        case OFFSETS:
+            if (!U2BE_from_parameter(msg->parameter, &tmp_offset)) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
+
+            // save offsets start point
+            if (context->tx.body.add_new_validator.id == 0) {
+                context->tx.body.add_new_validator.tuple_offsets_start = msg->parameterOffset;
+            }
+            // save offset and if not last one save next
+            context->tx.body.add_new_validator
+                .tuple_offsets[context->tx.body.add_new_validator.id] = tmp_offset;
+            context->tx.body.add_new_validator.id++;
+            context->next_param = OFFSETS;
+            if (context->tx.body.add_new_validator.id ==
+                context->tx.body.add_new_validator.n_pubkeys) {
+                context->tx.body.add_new_validator.id = 0;
+                context->offset = context->tx.body.add_new_validator.tuple_offsets_start +
+                                  context->tx.body.add_new_validator.tuple_offsets[0];
+                context->go_to_offset = true;
+                context->next_param = TUPLE_OFFSET_1;
+            }
             break;
         case TUPLE_OFFSET_1:
-            context->next_param = TUPLE_OFFSET_2;
-            break;
-        case TUPLE_OFFSET_2:
+            if (!U2BE_from_parameter(msg->parameter, &tmp_offset)) {
+                msg->result = ETH_PLUGIN_RESULT_ERROR;
+                return;
+            }
+            context->offset = msg->parameterOffset + tmp_offset;
+            context->go_to_offset = true;
             context->next_param = PUBKEY_LEN;
             break;
         case PUBKEY_LEN:
@@ -537,7 +630,11 @@ static void handle_add_new_validator(ethPluginProvideParameter_t *msg, context_t
                     context->next_param = NONE;
                 } else {
                     context->tx.body.add_new_validator.id++;
-                    context->next_param = PUBKEY_LEN;
+                    context->offset = context->tx.body.add_new_validator.tuple_offsets_start +
+                                      context->tx.body.add_new_validator
+                                          .tuple_offsets[context->tx.body.add_new_validator.id];
+                    context->go_to_offset = true;
+                    context->next_param = TUPLE_OFFSET_1;
                 }
             } else {  // Name has more then 32 bytes
                 containers = context->tx.body.add_new_validator
@@ -632,24 +729,14 @@ static void handle_add_new_validator(ethPluginProvideParameter_t *msg, context_t
                 context->tx.body.add_new_validator.id = 0;
                 context->next_param = NONE;
             } else {
+                // we are not on the last offset, jump to next tuple
                 context->tx.body.add_new_validator.id++;
-                context->next_param = SIGNATURE_LEN;
+                context->offset = context->tx.body.add_new_validator.tuple_offsets_start +
+                                  context->tx.body.add_new_validator
+                                      .tuple_offsets[context->tx.body.add_new_validator.id];
+                context->go_to_offset = true;
+                context->next_param = TUPLE_OFFSET_1;
             }
-            break;
-        case SIGNATURE_LEN:
-            if (!U2BE_from_parameter(msg->parameter, &sig_len)) {
-                msg->result = ETH_PLUGIN_RESULT_ERROR;
-                return;
-            }
-            containers = sig_len / PARAMETER_LENGTH;
-            if (sig_len % PARAMETER_LENGTH == 0) {
-                context->offset = msg->parameterOffset + ((1 + containers) * PARAMETER_LENGTH);
-            } else {
-                context->offset = msg->parameterOffset + ((2 + containers) * PARAMETER_LENGTH);
-            }
-
-            context->go_to_offset = true;
-            context->next_param = TUPLE_OFFSET_1;
             break;
         case NONE:
             break;
