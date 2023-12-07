@@ -52,7 +52,7 @@ typedef enum {
     NONE
 } parameter;
 
-extern const uint8_t *const SWELL_SELECTORS[NUM_SELECTORS];
+extern const uint32_t SWELL_SELECTORS[NUM_SELECTORS];
 
 typedef struct {
     uint8_t value[ADDRESS_LENGTH];
@@ -141,4 +141,6 @@ typedef struct context_t {
 
 // Piece of code that will check that the above structure is not bigger than 5 * 32. Do not remove
 // this check.
-_Static_assert(sizeof(context_t) <= 5 * 32, "Structure of parameters too big.");
+#ifndef BUILDING_FUZZER
+ASSERT_SIZEOF_PLUGIN_CONTEXT(context_t);
+#endif
