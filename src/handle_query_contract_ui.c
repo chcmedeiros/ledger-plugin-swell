@@ -213,6 +213,24 @@ void handle_query_contract_ui(ethQueryContractUI_t *msg) {
                 ret = false;
             }
             break;
+        case DEPOSIT:
+            if (msg->screenIndex == 0) {
+                strlcpy(msg->title, "Stake", msg->titleLength);
+                const uint8_t *eth_amount = msg->pluginSharedRO->txContent->value.value;
+                uint8_t eth_amount_size = msg->pluginSharedRO->txContent->value.length;
+
+                ret = amountToString(eth_amount,
+                                     eth_amount_size,
+                                     WEI_TO_ETHER,
+                                     "ETH",
+                                     msg->msg,
+                                     msg->msgLength);
+            } else {
+                PRINTF("Received an invalid screenIndex\n");
+                ret = false;
+            }
+            break;
+
         default:
             PRINTF("Selector index: %d not supported\n", context->selectorIndex);
             ret = false;
