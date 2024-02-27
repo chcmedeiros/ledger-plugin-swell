@@ -46,6 +46,9 @@ void handle_query_contract_id(ethQueryContractID_t *msg) {
         case WITHDRAWERC20:
             strlcpy(msg->version, "WithdrawERC20", msg->versionLength);
             break;
+        case DEPOSIT:
+            strlcpy(msg->version, "Deposit", msg->versionLength);
+            break;
         default:
             PRINTF("Selector index: %d not supported\n", context->selectorIndex);
             msg->result = ETH_PLUGIN_RESULT_ERROR;
