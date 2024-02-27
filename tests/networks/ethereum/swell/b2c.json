@@ -66,6 +66,17 @@
           "plugin": "Swell"
         }
       }
+    },
+    {
+      "address": "0xfae103dc9cf190ed75350761e95403b7b8afa6c0",
+      "contractName": "TransparentUpgradeableProxy",
+      "selectors": {
+        "0xd0e30db0": {
+          "erc20OfInterest": [],
+          "method": "deposit",
+          "plugin": "Swell"
+        }
+      }
     }
   ],
   "name": "Swell"

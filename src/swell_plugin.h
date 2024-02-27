@@ -1,11 +1,10 @@
 #pragma once
 
-#include "eth_internals.h"
 #include "eth_plugin_interface.h"
 #include <string.h>
 
 // Number of selectors defined in this plugin. Should match the enum `selector_t`.
-#define NUM_SELECTORS 12
+#define NUM_SELECTORS 13
 
 // Name of the plugin.
 #define PLUGIN_NAME "Swell"
@@ -26,8 +25,8 @@ typedef enum {
     UPDATE_OPERATOR_NAME,
     UPDATE_OPERATOR_REWARD,
     USE_PUBKEYS_FOR_VALIDATOR,
-    WITHDRAWERC20
-
+    WITHDRAWERC20,
+    DEPOSIT
 } selector_t;
 
 // Enumeration used to parse the smart contract data.

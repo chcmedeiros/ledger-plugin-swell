@@ -5,6 +5,7 @@ static const uint32_t ADD_NEW_VALIDATORS_DETAILS = 0x60ec5216;
 static const uint32_t ADD_OPERATOR_SELECTOR = 0x54741d6d;
 static const uint32_t DELETE_ACTIVE_VALIDATORS_SELECTOR = 0xeda74e71;
 static const uint32_t DELETE_PENDING_VALIDATORS_SELECTOR = 0x242eba0e;
+static const uint32_t DEPOSIT_SELECTOR = 0xd0e30db0;
 static const uint32_t DISABLE_OPERATOR_SELECTOR = 0xf56408ed;
 static const uint32_t ENABLE_OPERATOR_SELECTOR = 0xdd307b99;
 static const uint32_t INITIALIZE_SELECTOR = 0xc4d66de8;
@@ -27,4 +28,5 @@ const uint32_t SWELL_SELECTORS[NUM_SELECTORS] = {ADD_NEW_VALIDATORS_DETAILS,
                                                  UPDATE_OPERATOR_NAME_SELECTOR,
                                                  UPDATE_OPERATOR_REWARD_SELECTOR,
                                                  USE_PUBKEYS_FOR_VALIDATOR_SELECTOR,
-                                                 WITHDRAWERC20_SELECTOR};
+                                                 WITHDRAWERC20_SELECTOR,
+                                                 DEPOSIT_SELECTOR};

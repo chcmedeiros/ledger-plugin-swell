@@ -790,6 +790,8 @@ void handle_provide_parameter(ethPluginProvideParameter_t *msg) {
         case WITHDRAWERC20:
             handle_withdraw(msg, context);
             break;
+        case DEPOSIT:
+            break;
         default:
             PRINTF("Selector Index not supported: %d\n", context->selectorIndex);
             msg->result = ETH_PLUGIN_RESULT_ERROR;
