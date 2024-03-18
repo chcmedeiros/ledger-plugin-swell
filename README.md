@@ -27,7 +27,8 @@ Smart contracts covered by this plugin are:
 |  Network | Smart Contract                 | Smart Contract Address |
 | -------- | ------------------------------ | ---------------------- |
 | Ethereum| Deposit Manager & Node Operator Registry    | [0x46DdC39E780088B1B146Aba8cBBe15DC321A1A1d](https://etherscan.io/address/0x46ddc39e780088b1b146aba8cbbe15dc321a1a1d) |
-...
+| Ethereum| rswETH    | [0xFAe103DC9cf190eD75350761e95403b7b8aFa6c0](https://etherscan.io/address/0xFAe103DC9cf190eD75350761e95403b7b8aFa6c0) |
+
 
 
 ## Functions implemented:
@@ -40,6 +41,7 @@ Smart contracts covered by this plugin are:
 |deleteActiveValidators*    |0xeda74e71|<table> <tbody> <tr><td><code>bytes[] pubkeys</code></td></tr> </tbody> </table>  |
 |deletePendingValidators*   |0x242eba0e|<table> <tbody> <tr><td><code>bytes[] pubkeys</code></td></tr> </tbody> </table>  |
 |usePubKeysForValidatorSetup*   |0xc3953502|<table> <tbody> <tr><td><code>bytes[] pubkeys</code></td></tr> </tbody> </table>  |
+|deposit     |0xd0e30db0|<table> <tbody> <tr><td><code>amount stake</code></td></tr>  </tbody> </table>  |
 |disableOperator     |0xf56408ed|<table> <tbody> <tr><td><code>address operator</code></td></tr>  </tbody> </table>  |
 |enableOperator   |0xdd307b99|<table> <tbody> <tr><td><code>address operator</code></td></tr>  </tbody> </table>  |
 |initialize   |0xc4d66de8|<table> <tbody> <tr><td><code>address control_manager</code></td></tr>  </tbody> </table>  |
