@@ -28,7 +28,7 @@ Smart contracts covered by this plugin are:
 | -------- | ------------------------------ | ---------------------- |
 | Ethereum| Deposit Manager & Node Operator Registry    | [0x46DdC39E780088B1B146Aba8cBBe15DC321A1A1d](https://etherscan.io/address/0x46ddc39e780088b1b146aba8cbbe15dc321a1a1d) |
 | Ethereum| rswETH    | [0xFAe103DC9cf190eD75350761e95403b7b8aFa6c0](https://etherscan.io/address/0xFAe103DC9cf190eD75350761e95403b7b8aFa6c0) |
-
+| Ethereum| swETH    | [0xf951e335afb289353dc249e82926178eac7ded78](https://etherscan.io/address/0xf951e335afb289353dc249e82926178eac7ded78#code) |
 
 
 ## Functions implemented:
