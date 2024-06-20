@@ -16,7 +16,6 @@ static bool set_address_ui(ethQueryContractUI_t *msg, address_t *value) {
     return getEthAddressStringFromBinary(
         value->value,
         msg->msg + 2,  // +2 here because we've already prefixed with '0x'.
-        msg->pluginSharedRW->sha3,
         chainid);
 }
 
